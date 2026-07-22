@@ -22,11 +22,11 @@ from sklearn.metrics import (
 # ==========================
 # MLflow
 # ==========================
-mlflow.set_experiment("Hotel Reservation Classification")
+mlflow.set_tracking_uri("sqlite:///mlflow.db")
 
-
-print("Membaca dataset...")
-
+mlflow.set_experiment(
+    "Hotel Reservation Classification"
+)
 
 # ==========================
 # Load Dataset
