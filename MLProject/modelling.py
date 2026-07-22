@@ -18,7 +18,6 @@ from sklearn.metrics import (
     classification_report
 )
 
-
 # ==========================
 # MLflow
 # ==========================
@@ -28,6 +27,11 @@ mlflow.set_experiment(
     "Hotel Reservation Classification"
 )
 
+# ==================================================
+# AKTIFKAN AUTOLOG (WAJIB SESUAI KRITERIA DICODING)
+# ==================================================
+mlflow.autolog()
+
 # ==========================
 # Load Dataset
 # ==========================
@@ -35,31 +39,24 @@ df = pd.read_csv("hotel_reservation_processed.csv")
 
 print(f"Dataset berhasil dibaca: {df.shape}")
 
-
 # ==========================
 # Feature & Target
 # ==========================
-
 X = df.drop(columns=["booking_status"])
 y = df["booking_status"]
 
-
 # Encode fitur kategori
 X = pd.get_dummies(X)
-
 
 # Encode target
 target_encoder = LabelEncoder()
 y = target_encoder.fit_transform(y)
 
-
 print("Encoding selesai")
-
 
 # ==========================
 # Split Dataset
 # ==========================
-
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
@@ -68,46 +65,35 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=y
 )
 
-
 print("Training model...")
-
 
 # ==========================
 # MLflow Run
 # ==========================
-
 with mlflow.start_run():
 
     n_estimators = 100
     random_state = 42
-
 
     model = RandomForestClassifier(
         n_estimators=n_estimators,
         random_state=random_state
     )
 
-
+    # ==========================
     # Training
-    model.fit(
-        X_train,
-        y_train
-    )
+    # ==========================
+    model.fit(X_train, y_train)
 
-
+    # ==========================
     # Prediction
+    # ==========================
     y_pred = model.predict(X_test)
-
-
 
     # ==========================
     # Evaluation
     # ==========================
-
-    acc = accuracy_score(
-        y_test,
-        y_pred
-    )
+    acc = accuracy_score(y_test, y_pred)
 
     prec = precision_score(
         y_test,
@@ -127,11 +113,9 @@ with mlflow.start_run():
         zero_division=0
     )
 
-
     # ==========================
-    # MLflow Parameter
+    # Manual Logging Parameter
     # ==========================
-
     mlflow.log_param(
         "model",
         "RandomForestClassifier"
@@ -147,11 +131,9 @@ with mlflow.start_run():
         random_state
     )
 
-
     # ==========================
-    # MLflow Metrics
+    # Manual Logging Metrics
     # ==========================
-
     mlflow.log_metric(
         "accuracy",
         acc
@@ -172,17 +154,13 @@ with mlflow.start_run():
         f1
     )
 
-
-
     # ==========================
     # Classification Report
     # ==========================
-
     report = classification_report(
         y_test,
         y_pred
     )
-
 
     with open(
         "classification_report.txt",
@@ -190,27 +168,21 @@ with mlflow.start_run():
     ) as f:
         f.write(report)
 
-
     mlflow.log_artifact(
         "classification_report.txt"
     )
 
-
-
     # ==========================
     # Confusion Matrix
     # ==========================
-
     cm = confusion_matrix(
         y_test,
         y_pred
     )
 
-
     disp = ConfusionMatrixDisplay(
         confusion_matrix=cm
     )
-
 
     disp.plot()
 
@@ -222,17 +194,13 @@ with mlflow.start_run():
 
     plt.close()
 
-
     mlflow.log_artifact(
         "confusion_matrix.png"
     )
 
-
-
     # ==========================
     # Feature Importance
     # ==========================
-
     importance = pd.Series(
         model.feature_importances_,
         index=X.columns
@@ -240,23 +208,19 @@ with mlflow.start_run():
         ascending=False
     )
 
-
     plt.figure(
-        figsize=(10,6)
+        figsize=(10, 6)
     )
 
     importance.head(15).plot(
         kind="bar"
     )
 
-
     plt.title(
         "Top 15 Feature Importance"
     )
 
-
     plt.tight_layout()
-
 
     plt.savefig(
         "feature_importance.png"
@@ -264,53 +228,41 @@ with mlflow.start_run():
 
     plt.close()
 
-
     mlflow.log_artifact(
         "feature_importance.png"
     )
 
-
-
     # ==========================
     # Save Model
     # ==========================
-
     joblib.dump(
         model,
         "model.pkl"
     )
-
 
     joblib.dump(
         X.columns.tolist(),
         "features.pkl"
     )
 
-
     joblib.dump(
         target_encoder,
         "target_encoder.pkl"
     )
 
-
-
     # ==========================
-    # Log Model MLflow
+    # Log Model
     # ==========================
-
     mlflow.sklearn.log_model(
         model,
         "model"
     )
-
 
     print("\n===== HASIL EVALUASI =====")
     print(f"Accuracy : {acc:.4f}")
     print(f"Precision: {prec:.4f}")
     print(f"Recall   : {rec:.4f}")
     print(f"F1 Score : {f1:.4f}")
-
-
 
 print("\nTraining selesai.")
 print("Model berhasil disimpan:")
