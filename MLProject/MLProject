@@ -1,6 +1,6 @@
 name: hotel-reservation-model
 
-conda_env: conda.yaml
+conda_env: local
 
 entry_points:
   main:
