@@ -1,89 +1,93 @@
 from prometheus_client import start_http_server, Counter, Gauge
-import time
-import joblib
 import pandas as pd
+import joblib
+import time
 
-# ==========================
-# Load Model
-# ==========================
+
+# =========================
+# LOAD MODEL
+# =========================
 model = joblib.load("model.pkl")
+features = joblib.load("features.pkl")
 
-# ==========================
-# Metrics
-# ==========================
-REQUEST_COUNT = Counter(
-    "model_requests_total",
-    "Total number of prediction requests"
+
+# =========================
+# METRICS
+# =========================
+prediction_total = Counter(
+    "prediction_total",
+    "Total prediction request"
 )
 
-MODEL_ACCURACY = Gauge(
-    "model_accuracy",
-    "Model accuracy"
-)
-
-PREDICTION_TIME = Gauge(
-    "prediction_time_seconds",
-    "Prediction latency"
-)
-
-PREDICTION_RESULT = Gauge(
+prediction_result = Gauge(
     "prediction_result",
-    "Prediction result (0=Not_Canceled, 1=Canceled)"
+    "Latest prediction result"
 )
 
-# ==========================
-# Sample Data
-# (sesuaikan dengan hasil preprocessing)
-# ==========================
-sample = pd.DataFrame({
-    "no_of_adults": [2],
-    "no_of_children": [0],
-    "no_of_weekend_nights": [1],
-    "no_of_week_nights": [2],
-    "type_of_meal_plan": [0],
-    "required_car_parking_space": [0],
-    "room_type_reserved": [1],
-    "lead_time": [45],
-    "arrival_year": [2018],
-    "arrival_month": [7],
-    "arrival_date": [15],
-    "market_segment_type": [1],
-    "repeated_guest": [0],
-    "no_of_previous_cancellations": [0],
-    "no_of_previous_bookings_not_canceled": [0],
-    "avg_price_per_room": [110.5],
-    "no_of_special_requests": [1]
-})
 
-# ==========================
-# Main
-# ==========================
+# =========================
+# SAMPLE INPUT
+# =========================
+sample = pd.DataFrame([{
+    "lead_time": 100,
+    "no_of_special_requests": 1,
+    "avg_price_per_room": 100,
+    "no_of_adults": 2,
+    "no_of_weekend_nights": 1,
+    "no_of_week_nights": 2,
+    "type_of_meal_plan_Meal Plan 1": 1,
+    "type_of_meal_plan_Meal Plan 2": 0,
+    "type_of_meal_plan_Not Selected": 0,
+    "room_type_reserved_Room_Type 1": 1,
+    "room_type_reserved_Room_Type 2": 0,
+    "room_type_reserved_Room_Type 3": 0,
+    "market_segment_type_Online": 1,
+    "market_segment_type_Offline": 0,
+    "market_segment_type_Corporate": 0
+}])
+
+
 if __name__ == "__main__":
-
-    print("Prometheus Exporter running at http://localhost:8000/metrics")
 
     start_http_server(8000)
 
+    print(
+        "Prometheus Exporter running at http://localhost:8000/metrics"
+    )
+
+
     while True:
 
-        start = time.time()
+        try:
 
-        prediction = model.predict(sample)
+            # samakan kolom dengan training
+            sample = sample.reindex(
+                columns=features,
+                fill_value=0
+            )
 
-        latency = time.time() - start
 
-        REQUEST_COUNT.inc()
+            prediction = model.predict(sample)
 
-        # Ganti sesuai hasil accuracy model
-        MODEL_ACCURACY.set(0.90)
 
-        PREDICTION_TIME.set(latency)
+            prediction_total.inc()
 
-        PREDICTION_RESULT.set(int(prediction[0]))
+            prediction_result.set(
+                int(prediction[0])
+            )
 
-        print(
-            f"Prediction: {prediction[0]} | "
-            f"Latency: {latency:.5f} sec"
-        )
+
+            print(
+                "Prediction:",
+                prediction[0]
+            )
+
+
+        except Exception as e:
+            print(
+                "Error:",
+                e
+            )
+
 
         time.sleep(5)

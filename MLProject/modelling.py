@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import mlflow
-import mlflow.sklearn
+
 import joblib
 
 from sklearn.model_selection import train_test_split
@@ -250,15 +250,16 @@ with mlflow.start_run():
         "target_encoder.pkl"
     )
 
-    # ==========================
-    # Log Model
-    # ==========================
-    mlflow.sklearn.log_model(
-        model,
-        "model"
-    )
+joblib.dump(
+    target_encoder,
+    "target_encoder.pkl"
+)
 
-    print("\n===== HASIL EVALUASI =====")
+print("\n===== HASIL EVALUASI =====")
+print(f"Accuracy : {acc:.4f}")
+print(f"Precision: {prec:.4f}")
+print(f"Recall   : {rec:.4f}")
+print(f"F1 Score : {f1:.4f}")
     print(f"Accuracy : {acc:.4f}")
     print(f"Precision: {prec:.4f}")
     print(f"Recall   : {rec:.4f}")
