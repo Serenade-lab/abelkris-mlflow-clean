@@ -250,20 +250,13 @@ with mlflow.start_run():
         "target_encoder.pkl"
     )
 
-joblib.dump(
-    target_encoder,
-    "target_encoder.pkl"
-)
+
 
 print("\n===== HASIL EVALUASI =====")
 print(f"Accuracy : {acc:.4f}")
 print(f"Precision: {prec:.4f}")
 print(f"Recall   : {rec:.4f}")
 print(f"F1 Score : {f1:.4f}")
-    print(f"Accuracy : {acc:.4f}")
-    print(f"Precision: {prec:.4f}")
-    print(f"Recall   : {rec:.4f}")
-    print(f"F1 Score : {f1:.4f}")
 
 print("\nTraining selesai.")
 print("Model berhasil disimpan:")
