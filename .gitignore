@@ -1,11 +1,4 @@
-# MLflow
-MLProject/mlruns/
-MLProject/mlflow.db
-
-# Model artifacts
-MLProject/model.pkl
-MLProject/*.pkl
-
-# Python
+mlruns/
+mlflow.db
+*.pkl
 __pycache__/
-*.pyc
