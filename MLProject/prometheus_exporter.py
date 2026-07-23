@@ -3,27 +3,33 @@ import pandas as pd
 import joblib
 import time
 
-
 # =========================
 # LOAD MODEL
 # =========================
 model = joblib.load("model.pkl")
 features = joblib.load("features.pkl")
 
-
 # =========================
 # METRICS
 # =========================
+
+# Total jumlah prediksi
 prediction_total = Counter(
     "prediction_total",
     "Total prediction request"
 )
 
+# Hasil prediksi terakhir
 prediction_result = Gauge(
     "prediction_result",
     "Latest prediction result"
 )
 
+# Status model (1 = aktif)
+up_ml_model = Gauge(
+    "up_ml_model",
+    "ML model status"
+)
 
 # =========================
 # SAMPLE INPUT
@@ -46,48 +52,41 @@ sample = pd.DataFrame([{
     "market_segment_type_Corporate": 0
 }])
 
-
+# =========================
+# MAIN
+# =========================
 if __name__ == "__main__":
 
     start_http_server(8000)
 
-    print(
-        "Prometheus Exporter running at http://localhost:8000/metrics"
-    )
+    # Model sedang aktif
+    up_ml_model.set(1)
 
+    print("Prometheus Exporter running at http://localhost:8000/metrics")
 
     while True:
 
         try:
 
-            # samakan kolom dengan training
+            # Samakan kolom dengan data training
             sample = sample.reindex(
                 columns=features,
                 fill_value=0
             )
 
-
             prediction = model.predict(sample)
 
-
+            # Update metrics
             prediction_total.inc()
+            prediction_result.set(int(prediction[0]))
+            up_ml_model.set(1)
 
-            prediction_result.set(
-                int(prediction[0])
-            )
-
-
-            print(
-                "Prediction:",
-                prediction[0]
-            )
-
+            print("Prediction:", prediction[0])
 
         except Exception as e:
-            print(
-                "Error:",
-                e
-            )
 
+            up_ml_model.set(0)
+
+            print("Error:", e)
 
         time.sleep(5)
