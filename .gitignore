@@ -1,4 +1,6 @@
-mlruns/
-mlflow.db
-*.pkl
+MLProject/mlruns/
+MLProject/mlflow.db
+MLProject/model.pkl
+MLProject/features.pkl
+MLProject/target_encoder.pkl
 __pycache__/
